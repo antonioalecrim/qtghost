@@ -123,10 +123,6 @@ public slots:
     */
     void consume_event();
     /**
-      \brief will request a screen update.
-    */
-    void updateScreen_event();
-    /**
       \brief called when theres data ready to be converted into Ghost command.
     */
     void processCMD(QByteArray);

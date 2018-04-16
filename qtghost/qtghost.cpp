@@ -42,7 +42,6 @@ Qtghost::Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine)
     eventsIndex = 0;
 
     connect(&playTimer,SIGNAL(timeout()),this,SLOT(consume_event()));
-    connect(&updateRequestTimer,SIGNAL(timeout()),this,SLOT(updateScreen_event()));
 }
 
 bool Qtghost::eventFilter(QObject *watched, QEvent * event)
@@ -108,11 +107,6 @@ bool Qtghost::eventFilter(QObject *watched, QEvent * event)
     return false;
 }
 
-void Qtghost::updateScreen_event()
-{
-    appI->sendEvent(eng->rootObjects()[0], new QEvent(QEvent::UpdateRequest));
-}
-
 void Qtghost::consume_event()
 {
     QMouseEvent *eve;
@@ -172,9 +166,6 @@ int Qtghost::play()
     eventsIndex = 0;
     playTimer.setSingleShot(true);
     playTimer.start(10); //just to start with something
-    updateRequestTimer.setInterval(33); //~30FPS
-    updateRequestTimer.setSingleShot(false);
-    updateRequestTimer.start();
 
     return 0;
 }
@@ -184,7 +175,6 @@ int Qtghost::step()
     stepbystep = true;
     if (eventsIndex <= events.length()) {
         consume_event();
-        updateScreen_event();
         eventsIndex++;
     }
     else {
@@ -206,7 +196,6 @@ int Qtghost::record_start()
 
 int Qtghost::record_stop()
 {
-    updateRequestTimer.stop();
     recording = false;
     qDebug() << "Qtghost:" << "Ghost creation done!";
 
