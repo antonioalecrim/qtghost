@@ -268,7 +268,7 @@ void Qtghost::processCMD(QString cmd)
         if (parser.isSet(stepOption))
             step();
         if (parser.isSet(getRecOption))
-            server->sendRec(getJSONEvents().toJson());
+            server->sendRec("-j ",getJSONEvents().toJson());
     }
     else {
         bool isJSON = false;

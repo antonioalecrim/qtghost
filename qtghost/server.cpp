@@ -135,15 +135,18 @@ void Server::disconnected()
     buffer.clear();
 }
 
-void Server::sendRec(QByteArray data)
+void Server::sendRec(QString cmd, QByteArray data)
 {
     qint64 xfered = 0;
-    int l =  data.length();
+    int dLength =  data.length();
     qint64 status;
+    QString header = QString::number(dLength)+":"+cmd;
+
+    data.prepend(header.toStdString().c_str()); //adding header
 
     while (data.size()) {
-        if (data.size() >= 4096)
-            status = socket->write(data, 4096);
+        if (data.size() >= buffer_size)
+            status = socket->write(data, buffer_size);
         else
             status = socket->write(data, data.size());
         if (status >= 0) {
@@ -157,6 +160,6 @@ void Server::sendRec(QByteArray data)
         }
     }
     if (xfered) {
-        qDebug() << "Qtghost:" << xfered << "transfered from data length " << l;
+        qDebug() << "Qtghost:" << xfered << "transfered from data length " << dLength;
     }
 }

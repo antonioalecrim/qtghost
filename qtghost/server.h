@@ -30,6 +30,8 @@
 #include <QNetworkSession>
 #include <QDebug>
 
+const short buffer_size = 4096;
+
 class Server : public QObject
 {
     QTcpServer *tcpServer = nullptr; ///< \brief tcp server class.
@@ -49,8 +51,9 @@ public:
     /**
       \brief to send data to connected client.
       \param data data to send.
+      \param cmd packet command.
     */
-    void sendRec(QByteArray data);
+    void sendRec(QString cmd, QByteArray data);
 
 signals:
     /**
