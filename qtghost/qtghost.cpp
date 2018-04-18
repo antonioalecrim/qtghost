@@ -315,9 +315,10 @@ void Qtghost::setJSONEvents(QJsonDocument doc)
     events.clear();
     for (int i=0; i < array.size(); i++) {
         recEvent event;
-        event.pos = QPointF(array.at(i)["posX"].toDouble(),array.at(i)["posY"].toDouble());
-        event.time = array.at(i)["time"].toInt();
-        event.type = static_cast<QEvent::Type>(array.at(i)["type"].toInt());
+        event.pos = QPointF(array.at(i).toObject().value("posX").toDouble(),
+                            array.at(i).toObject().value("posY").toDouble());
+        event.time = array.at(i).toObject().value("time").toInt();
+        event.type = static_cast<QEvent::Type>(array.at(i).toObject().value("type").toInt());
         events.append(event);
     }
     qDebug() << "Qtghost:" << "New JSON set, size: " << events.size();
