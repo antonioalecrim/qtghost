@@ -29,6 +29,9 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QQuickWindow>
+#include <QDir>
+#include <QBuffer>
 
 Qtghost::Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine)
 {
@@ -40,6 +43,7 @@ Qtghost::Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine)
     appI = app;
     eng = engine;
     eventsIndex = 0;
+    createScreenshotCache = false;
 
     connect(&playTimer,SIGNAL(timeout()),this,SLOT(consume_event()));
 }
@@ -259,6 +263,9 @@ void Qtghost::processCMD(QString cmd)
         QCommandLineOption getVerOption(QStringList() << "v" << "version",
                 QCoreApplication::translate("version", "send version."));
         parser.addOption(getVerOption);
+        QCommandLineOption getScrOption(QStringList() << "c" << "screenshot",
+                QCoreApplication::translate("screenshot", "take screenshot."));
+        parser.addOption(getScrOption);
 
         // Process the actual command line arguments given by the user
         parser.process(arguments);
@@ -274,6 +281,27 @@ void Qtghost::processCMD(QString cmd)
             server->sendRec("-j ", getJSONEvents().toJson());
         if (parser.isSet(getVerOption))
             server->sendRec("-v ", QString(VERSION).toUtf8());
+        if (parser.isSet(getScrOption)) {
+            QQuickWindow *view = qobject_cast<QQuickWindow*>(eng->rootObjects().at(0));
+            QString name = "qtghost_scr.png";
+            QImage img = view->grabWindow();
+            if (createScreenshotCache) {
+                QString path = QDir::tempPath();
+                QFile::remove(path+"/"+name);
+                if (img.save(path+"/_tmp_"+name)) {
+                    QFile::rename(path+"/_tmp_"+name, path+"/"+name);
+                    qDebug() << "Qtghost: new screenshot at: " << path+"/"+name;
+                }
+                else {
+                    qDebug() << "Qtghost: failed to create a file at: " << path+"/"+name;
+                }
+            }
+            QByteArray ba;
+            QBuffer buffer(&ba);
+            buffer.open(QIODevice::WriteOnly);
+            img.save(&buffer, "PNG");
+            server->sendRec("-c ", ba);
+        }
     }
     else {
         bool isJSON = false;

@@ -54,7 +54,7 @@ class QTGHOSTSHARED_EXPORT Qtghost: QObject
     QTimer updateRequestTimer; ///< \brief will force a screen refresh.
     int eventsIndex; ///< \brief to point to the current event into ghost mode play.
     Server *server; ///< \brief server to receive remote commands.
-
+    bool createScreenshotCache; ///< \brief will create a local temp file for debug. False by default.
     Q_OBJECT
 
 public:

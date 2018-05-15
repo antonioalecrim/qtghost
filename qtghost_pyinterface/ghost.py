@@ -19,6 +19,7 @@ ghost.connect(TCP_IP, TCP_PORT)
 get = False
 set = False
 ver = False
+scr = False
 
 try:
 	if (sys.argv[2] == "get"):
@@ -35,6 +36,8 @@ try:
 		ghost.stop_rec()
 	elif (sys.argv[2] == "ver"):
 		ver = True
+	elif (sys.argv[2] == "scr"):
+		scr = True
 except:
 	sys.exit("error: can't find command as argument #2")
 
@@ -50,5 +53,6 @@ if (get):
 if (set):
 	ghost.setJSON(filename)
 if (ver):
-        print('version: local: ', ghost.version(), ' remote:', ghost.get_ver())
-
+	print('version: local: ', ghost.version(), ' remote:', ghost.get_ver())
+if (scr):
+	ghost.getScreenshot()

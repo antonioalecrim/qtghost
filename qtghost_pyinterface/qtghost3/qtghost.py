@@ -139,4 +139,10 @@ class Qtghost:
 	def version(self):
 		"""Returns the class version."""
 		return self.lversion
-
+	
+	def getScreenshot(self):
+		"""Get remote screenshot"""
+		self.send_pkt('-c')
+		data = self.recvall()
+		with open("scr.png", 'wb') as f:
+			f.write(data)
