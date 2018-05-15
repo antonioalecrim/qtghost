@@ -3,6 +3,7 @@ import socket, time, sys, os, struct
 
 class Qtghost:
 	"""Qtghost provides an interface to a remote QML to record and play events."""
+	lversion = "0.0.1"
 	message = ""
 	bufferSize = 4096
 	client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,7 +28,7 @@ class Qtghost:
 	def disconnect(self):
 		"""Disconnect from remote Qtghost."""
 		self.client.close()
-		
+	
 	def recvall(self):
 		"""
 		Receive all data.
@@ -77,7 +78,7 @@ class Qtghost:
 			print('error while sending data')
 			return
 		print('bytes sent, length:',length)
-		
+        
 	def setJSON(self, filename):
 		"""
 		Set remote JSON file.
@@ -93,7 +94,7 @@ class Qtghost:
 		with open(filename, 'r') as f:
 			message = "-j "+f.read()
 		self.send_pkt(message)
-
+        
 	def getJSON(self, filename):
 		"""
 		Get events JSON file from remote Qtghost.
@@ -112,7 +113,7 @@ class Qtghost:
 		print('Received message length : ', len(data))
 		with open(filename, 'w') as f:
 			f.write(data.decode())
-
+        
 	def play(self):
 		"""Sends play command to remote Qtghost."""
 		self.send_pkt('-p')
@@ -128,3 +129,14 @@ class Qtghost:
 	def stop_rec(self):
 		"""Sends stop recording command to remote Qtghost."""
 		self.send_pkt('-s')
+        
+	def get_ver(self):
+		"""Returns the remote library version."""
+		self.send_pkt('-v')
+		data = self.recvall()
+		return data.decode()
+        
+	def version(self):
+		"""Returns the class version."""
+		return self.lversion
+

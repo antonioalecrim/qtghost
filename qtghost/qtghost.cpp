@@ -234,8 +234,8 @@ void Qtghost::processCMD(QString cmd)
         QStringList arguments = QString("Qtghost "+cmd).split(" ");
         QCommandLineParser parser;
         parser.setApplicationDescription("Qtghost");
-        parser.addHelpOption();
-        parser.addVersionOption();
+        //parser.addHelpOption();
+        //parser.addVersionOption();
         // A boolean option with multiple names (-r, --record)
         QCommandLineOption recordOption(QStringList() << "r" << "record",
                 QCoreApplication::translate("record", "Start recording."));
@@ -256,6 +256,9 @@ void Qtghost::processCMD(QString cmd)
         QCommandLineOption getRecOption(QStringList() << "g" << "get-rec",
                 QCoreApplication::translate("get", "Get recorded ghost."));
         parser.addOption(getRecOption);
+        QCommandLineOption getVerOption(QStringList() << "v" << "version",
+                QCoreApplication::translate("version", "send version."));
+        parser.addOption(getVerOption);
 
         // Process the actual command line arguments given by the user
         parser.process(arguments);
@@ -268,7 +271,9 @@ void Qtghost::processCMD(QString cmd)
         if (parser.isSet(stepOption))
             step();
         if (parser.isSet(getRecOption))
-            server->sendRec("-j ",getJSONEvents().toJson());
+            server->sendRec("-j ", getJSONEvents().toJson());
+        if (parser.isSet(getVerOption))
+            server->sendRec("-v ", QString(VERSION).toUtf8());
     }
     else {
         bool isJSON = false;

@@ -41,6 +41,8 @@ struct recEvent {
 
 class QTGHOSTSHARED_EXPORT Qtghost: QObject
 {
+    const char* VERSION = "0.0.1"; ///< \brief Lib version.
+
     QGuiApplication *appI; ///< \brief Pointer to user app.
     QQmlApplicationEngine *eng; ///< \brief Pointer to user QML engine.
     bool keyPressed; ///< \brief flag to detect drag events.

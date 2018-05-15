@@ -13,6 +13,7 @@ This library supports the following commands:
 - step (-e): play just one recorded user event (step);
 - get-rec (-g): get the recorded user events in JSON format;
 - set json (-j): sends recorded user events (in JSON format) to qtghost memory;
+- ver (-v): shows the python (local) and library (remote) version info;
 
 JSON recorded events for set/get are transfered through TCP/IP connection (sockets).
 The provided client to interface Qtghost is written in Python.
