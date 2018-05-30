@@ -55,6 +55,7 @@ class QTGHOSTSHARED_EXPORT Qtghost: QObject
     int eventsIndex; ///< \brief to point to the current event into ghost mode play.
     Server *server; ///< \brief server to receive remote commands.
     bool createScreenshotCache; ///< \brief will create a local temp file for debug. False by default.
+    QObject *toWatch; ///< \brief object to have events recorded.
     Q_OBJECT
 
 public:
@@ -64,6 +65,11 @@ public:
       \param engine pointer to QML engine.
     */
     Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine);
+    /**
+     * \brief sets the object to be monitored (defaults to root object).
+     * \param watch object to be monitored.
+     */
+    void setWatchable(QObject *watch);
     /**
       \brief event filter to detect user events.
       \paragraph watched pointer to current filtered object's event.

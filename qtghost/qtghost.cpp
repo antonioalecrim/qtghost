@@ -44,8 +44,15 @@ Qtghost::Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine)
     eng = engine;
     eventsIndex = 0;
     createScreenshotCache = false;
+    toWatch = eng->rootObjects()[0];
 
     connect(&playTimer,SIGNAL(timeout()),this,SLOT(consume_event()));
+}
+
+void Qtghost::setWatchable(QObject *watch)
+{
+    toWatch = watch;
+    toWatch->installEventFilter(this);
 }
 
 bool Qtghost::eventFilter(QObject *watched, QEvent * event)
@@ -55,7 +62,7 @@ bool Qtghost::eventFilter(QObject *watched, QEvent * event)
     QTouchEvent *touchEvent;
     QList<QTouchEvent::TouchPoint> touchList;
 
-    if (watched == eng->rootObjects()[0]) {
+    if (watched == toWatch) {
         switch(event->type()) {
         case QEvent::MouseButtonPress:
         case QEvent::MouseButtonRelease:
@@ -127,7 +134,7 @@ void Qtghost::consume_event()
                             Qt::LeftButton, //should get this from event register?
                             Qt::NoButton,
                             Qt::NoModifier);
-            appI->sendEvent(eng->rootObjects()[0], eve);
+            appI->sendEvent(toWatch, eve);
             delete eve;
             break;
         case QEvent::DragEnter:
@@ -140,7 +147,7 @@ void Qtghost::consume_event()
                                         Qt::LeftButton,
                                         Qt::NoModifier,
                                         events[eventsIndex].type);
-            appI->sendEvent(eng->rootObjects()[0], genericDragEvent);
+            appI->sendEvent(toWatch, genericDragEvent);
             delete genericDragEvent;
             break;
         default:
@@ -282,7 +289,7 @@ void Qtghost::processCMD(QString cmd)
         if (parser.isSet(getVerOption))
             server->sendRec("-v ", QString(VERSION).toUtf8());
         if (parser.isSet(getScrOption)) {
-            QQuickWindow *view = qobject_cast<QQuickWindow*>(eng->rootObjects().at(0));
+            QQuickWindow *view = qobject_cast<QQuickWindow*>(toWatch);
             QString name = "qtghost_scr.png";
             QImage img = view->grabWindow();
             if (createScreenshotCache) {
