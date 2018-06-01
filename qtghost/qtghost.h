@@ -34,18 +34,22 @@
 
 ///< \brief Stores a GUI event
 struct recEvent {
-    QPointF pos; ///< \brief position where the event occurred
-    int time; ///< \brief QTime returns int for QTime::elapsed
+    QPointF pos; ///< \brief position where the event occurred.
+    int time; ///< \brief QTime returns int for QTime::elapsed.
     QEvent::Type type; ///< \brief mouse press, release, etc.
+    int argI; ///< \brief Integer argument.
+    QString argS; ///< \brief String argument.
+    QPointF pos2; ///< \brief position 2 where the event occurred.
 };
 
 class QTGHOSTSHARED_EXPORT Qtghost: QObject
 {
-    const char* VERSION = "0.0.1"; ///< \brief Lib version.
+    const char* VERSION = "0.0.2"; ///< \brief Lib version.
 
     QGuiApplication *appI; ///< \brief Pointer to user app.
     QQmlApplicationEngine *eng; ///< \brief Pointer to user QML engine.
     bool keyPressed; ///< \brief flag to detect drag events.
+    bool allMouseMoves; ///< \brief flag to store all mouse moves.
     bool recording; ///< \brief if user events are being recorded.
     bool stepbystep; ///< \brief play just one event at time.
     QList<recEvent> events; ///< \brief will hold user events.
@@ -65,6 +69,11 @@ public:
       \param engine pointer to QML engine.
     */
     Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine);
+    /**
+     * \brief get Lib Version
+     * \return QString library version
+     */
+    QString getVersion();
     /**
      * \brief sets the object to be monitored (defaults to root object).
      * \param watch object to be monitored.
@@ -101,9 +110,11 @@ public:
       \brief register an user event into events list to used later in ghost mode.
       \param p position where the event occurred.
       \param t event type (move, click, etc).
+      \param argI integer argument.
+      \param argS string argument.
       \return 0 on success.
     */
-    int add_event(QPointF p, QEvent::Type t);
+    int add_event(QPointF p, QEvent::Type t, int argI = 0, QString argS = "", QPointF p2 = QPointF(0,0));
     /**
       \brief Init the ghost mode, for now init the server.
       \return 0 on success.
@@ -124,6 +135,11 @@ public:
       \param doc JSON document to be inserted into ghost memory.
     */
     void setJSONEvents(QJsonDocument doc);
+    /**
+     * \brief configura the ghost to registar all mouse moves or only when a key is being pressed (touchscreen).
+     * @param flag true: store all mouse movements, false: store mouse movements only when a key is being pressed.
+     */
+    void setStoreAllMouseMoves(bool flag);
 
 public slots:
     /**

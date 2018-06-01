@@ -36,6 +36,7 @@
 Qtghost::Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine)
 {
     keyPressed = false;
+    allMouseMoves = false;
     recording = false;
     stepbystep = false;
 
@@ -49,10 +50,14 @@ Qtghost::Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine)
     connect(&playTimer,SIGNAL(timeout()),this,SLOT(consume_event()));
 }
 
+QString Qtghost::getVersion()
+{
+    return QString(VERSION);
+}
+
 void Qtghost::setWatchable(QObject *watch)
 {
     toWatch = watch;
-    toWatch->installEventFilter(this);
 }
 
 bool Qtghost::eventFilter(QObject *watched, QEvent * event)
@@ -60,6 +65,8 @@ bool Qtghost::eventFilter(QObject *watched, QEvent * event)
     QMouseEvent *mouseEvent;
     QDropEvent *genericDragEvent;
     QTouchEvent *touchEvent;
+    QKeyEvent *keyEvent;
+    QWheelEvent *wheelEvent;
     QList<QTouchEvent::TouchPoint> touchList;
 
     if (watched == toWatch) {
@@ -72,7 +79,7 @@ bool Qtghost::eventFilter(QObject *watched, QEvent * event)
             keyPressed = (event->type() == QEvent::MouseButtonPress);
             break;
         case QEvent::MouseMove:
-            if (keyPressed) {
+            if (keyPressed || allMouseMoves) {
                 mouseEvent = static_cast<QMouseEvent*>(event);
                 add_event(mouseEvent->pos(), event->type());
             }
@@ -110,6 +117,21 @@ bool Qtghost::eventFilter(QObject *watched, QEvent * event)
                 }
             }
             break;
+        case QEvent::KeyPress:
+        case QEvent::KeyRelease:
+        case QEvent::ShortcutOverride:
+            keyEvent = static_cast<QKeyEvent*>(event);
+            add_event(QPointF(),
+                      event->type(),
+                      keyEvent->key(),
+                      keyEvent->text());
+            break;
+        case QEvent::Wheel:
+            wheelEvent = static_cast<QWheelEvent*>(event);
+            add_event(wheelEvent->pos(), event->type(), wheelEvent->delta(),
+                      QString::number(wheelEvent->orientation()),
+                      wheelEvent->globalPosF());
+            break;
         default:
             break;
         }
@@ -122,6 +144,9 @@ void Qtghost::consume_event()
 {
     QMouseEvent *eve;
     QDropEvent *genericDragEvent;
+    QKeyEvent *keyEvent;
+    QWheelEvent *wheelEvent;
+    Qt::Orientation orientation;
 
     if (eventsIndex < events.length()) {
         switch (events[eventsIndex].type) {
@@ -149,6 +174,31 @@ void Qtghost::consume_event()
                                         events[eventsIndex].type);
             appI->sendEvent(toWatch, genericDragEvent);
             delete genericDragEvent;
+            break;
+        case QEvent::KeyPress:
+        case QEvent::KeyRelease:
+        case QEvent::ShortcutOverride:
+            keyEvent = new QKeyEvent(events[eventsIndex].type,
+                                     events[eventsIndex].argI,
+                                     Qt::NoModifier,
+                                     events[eventsIndex].argS);
+            appI->sendEvent(toWatch, keyEvent);
+            delete keyEvent;
+            break;
+        case QEvent::Wheel:
+            orientation = (Qt::Orientation)events[eventsIndex].argS.toInt();
+            wheelEvent = new QWheelEvent(events[eventsIndex].pos,
+                                         events[eventsIndex].pos2,
+                                         QPoint(),
+                                         (orientation == Qt::Vertical) ?
+                                             QPoint(0,events[eventsIndex].argI) :
+                                             QPoint(events[eventsIndex].argI, 0),
+                                         events[eventsIndex].argI,
+                                         orientation,
+                                         Qt::NoButton,
+                                         Qt::NoModifier);
+            appI->sendEvent(toWatch, wheelEvent);
+            delete wheelEvent;
             break;
         default:
             break;
@@ -213,13 +263,16 @@ int Qtghost::record_stop()
     return 0;
 }
 
-int Qtghost::add_event(QPointF p, QEvent::Type t)
+int Qtghost::add_event(QPointF p, QEvent::Type t, int argI, QString argS, QPointF p2)
 {
     if (recording) {
         recEvent rec;
         rec.pos = p;
         rec.time = time.restart();
         rec.type = t;
+        rec.argI = argI;
+        rec.argS = argS;
+        rec.pos2 = p2;
         events.append(rec);
     }
 
@@ -362,4 +415,9 @@ void Qtghost::setJSONEvents(QJsonDocument doc)
         events.append(event);
     }
     qDebug() << "Qtghost:" << "New JSON set, size: " << events.size();
+}
+
+void Qtghost::setStoreAllMouseMoves(bool flag)
+{
+    allMouseMoves = flag;
 }
