@@ -44,7 +44,7 @@ struct recEvent {
 
 class QTGHOSTSHARED_EXPORT Qtghost: QObject
 {
-    const char* VERSION = "0.0.2"; ///< \brief Lib version.
+    const char* VERSION = "0.0.3"; ///< \brief Lib version.
 
     QGuiApplication *appI; ///< \brief Pointer to user app.
     QQmlApplicationEngine *eng; ///< \brief Pointer to user QML engine.
@@ -107,7 +107,7 @@ public:
     */
     int record_stop();
     /**
-      \brief register an user event into events list to used later in ghost mode.
+      \brief register an user event into events list to be used later in ghost mode.
       \param p position where the event occurred.
       \param t event type (move, click, etc).
       \param argI integer argument.
@@ -117,11 +117,12 @@ public:
     int add_event(QPointF p, QEvent::Type t, int argI = 0, QString argS = "", QPointF p2 = QPointF(0,0));
     /**
       \brief Init the ghost mode, for now init the server.
+      \param port ghost server port number.
       \return 0 on success.
     */
-    int init();
+    int init(quint16 port=0);
     /**
-      \brief process an received command.
+      \brief process a received command.
       \param cmd command to be processed.
     */
     void processCMD(QString cmd);
@@ -143,11 +144,11 @@ public:
 
 public slots:
     /**
-      \brief when called it will consume end execute an recorded event (ghost play).
+      \brief when called it will consume end execute a recorded event (ghost play).
     */
     void consume_event();
     /**
-      \brief called when theres data ready to be converted into Ghost command.
+      \brief called when there is data ready to be converted into Ghost command.
     */
     void processCMD(QByteArray);
 };

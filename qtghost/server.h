@@ -40,14 +40,16 @@ class Server : public QObject
 
     QByteArray buffer; ///< \brief to store received data until is complete.
     qint64 bLength; ///< \brief current transfer size.
+    quint16 portI; ///< \brief server port
 
     Q_OBJECT
 public:
     /**
       \brief Server Class constructor.
       \param parent object parent.
+      \param port server port, 0 value for automatic mode.
     */
-    explicit Server(QObject *parent = nullptr);
+    explicit Server(QObject *parent = nullptr, quint16 port = 0);
     /**
       \brief to send data to connected client.
       \param data data to send.

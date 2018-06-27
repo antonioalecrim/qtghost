@@ -26,10 +26,12 @@
 #include <QtNetwork>
 #include <QtCore>
 
-Server::Server(QObject *parent) : QObject(parent)
+Server::Server(QObject *parent, quint16 port) : QObject(parent)
 {
     bLength = 0;
+    portI = port;
     QNetworkConfigurationManager manager;
+
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
         // Get saved network configuration
         QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
@@ -59,6 +61,8 @@ Server::Server(QObject *parent) : QObject(parent)
 
 void Server::sessionOpened()
 {
+    int attempts = 0;
+
     // Save the used configuration
     if (networkSession) {
         QNetworkConfiguration config = networkSession->configuration();
@@ -75,10 +79,20 @@ void Server::sessionOpened()
     }
 
     tcpServer = new QTcpServer(this);
-    if (!tcpServer->listen()) {
-        qDebug() << "Qtghost:" << "Unable to start the server: "+tcpServer->errorString();
+    while (attempts < 2) {
+        if (tcpServer->listen(QHostAddress::Any, portI)) {
 
-        exit(1);
+            break; //if successful continue the program execution
+        }
+        //if failed it disables the system proxy and tries one more time.
+        //exit with failure after the second attempt.
+        if (attempts) {
+            qDebug() << "Qtghost:" << "Unable to start the server: "+tcpServer->errorString();
+
+            exit(1);
+        }
+        QNetworkProxyFactory::setUseSystemConfiguration(false);
+        attempts++;
     }
     QString ipAddress;
     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
@@ -93,7 +107,8 @@ void Server::sessionOpened()
     // if we did not find one, use IPv4 localhost
     if (ipAddress.isEmpty())
         ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
-    qDebug() << "Qtghost:" << tr("server is running on IP: %1 port: %2").arg(ipAddress).arg(tcpServer->serverPort());
+    qDebug() << "Qtghost:" << tr("server is running on IP: %1 port: %2 using system proxy:%3").arg(ipAddress)
+                .arg(tcpServer->serverPort()).arg(attempts ? "false" : "true");
 }
 
 void Server::newConnection()

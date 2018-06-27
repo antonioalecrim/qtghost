@@ -279,9 +279,9 @@ int Qtghost::add_event(QPointF p, QEvent::Type t, int argI, QString argS, QPoint
     return 0;
 }
 
-int Qtghost::init()
+int Qtghost::init(quint16 port)
 {
-    server = new Server(this);
+    server = new Server(this, port);
     connect(server, SIGNAL(dataReceived(QByteArray)), SLOT(processCMD(QByteArray)));
 
     return 0;
