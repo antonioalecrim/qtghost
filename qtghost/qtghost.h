@@ -42,7 +42,27 @@ struct recEvent {
     QPointF pos2; ///< \brief position 2 where the event occurred.
 };
 
-class QTGHOSTSHARED_EXPORT Qtghost: QObject
+class QtghostInterface: public QObject
+{
+    Q_OBJECT
+public:
+    virtual ~QtghostInterface(){}
+    virtual QString getVersion() = 0;
+    virtual void setWatchable(QObject *watch) = 0;
+    virtual bool eventFilter(QObject *watched, QEvent * event) = 0;
+    virtual int play() = 0;
+    virtual int step() = 0;
+    virtual int record_start() = 0;
+    virtual int record_stop() = 0;
+    virtual int add_event(QPointF p, QEvent::Type t, int argI = 0, QString argS = "", QPointF p2 = QPointF(0,0)) = 0;
+    virtual int init(quint16 port=0) = 0;
+    virtual void processCMD(QString cmd) = 0;
+    virtual QJsonDocument getJSONEvents() = 0;
+    virtual void setJSONEvents(QJsonDocument doc) = 0;
+    virtual void setStoreAllMouseMoves(bool flag) = 0;
+};
+
+class QTGHOSTSHARED_EXPORT Qtghost: public QtghostInterface
 {
     const char* VERSION = "0.0.3"; ///< \brief Lib version.
 
@@ -69,6 +89,7 @@ public:
       \param engine pointer to QML engine.
     */
     Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine);
+    //virtual ~Qtghost();
     /**
      * \brief get Lib Version
      * \return QString library version
@@ -120,7 +141,7 @@ public:
       \param port ghost server port number.
       \return 0 on success.
     */
-    int init(quint16 port=0);
+    int init(quint16 port=0) override;
     /**
       \brief process a received command.
       \param cmd command to be processed.
@@ -137,7 +158,7 @@ public:
     */
     void setJSONEvents(QJsonDocument doc);
     /**
-     * \brief configura the ghost to registar all mouse moves or only when a key is being pressed (touchscreen).
+     * \brief configures ghost to register all mouse moves or only when a key is being pressed (touchscreen).
      * @param flag true: store all mouse movements, false: store mouse movements only when a key is being pressed.
      */
     void setStoreAllMouseMoves(bool flag);
@@ -152,5 +173,13 @@ public slots:
     */
     void processCMD(QByteArray);
 };
+
+/**
+    \brief Return a pointer to QtGhost class, used when referencing it using QLibrary method.
+    \param app pointer to user app.
+    \param engine pointer to QML engine.
+    \return QtGhost pointer.
+ */
+extern "C" QTGHOSTSHARED_EXPORT Qtghost* create_Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine);
 
 #endif // QTGHOST_H
