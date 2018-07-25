@@ -421,3 +421,8 @@ void Qtghost::setStoreAllMouseMoves(bool flag)
 {
     allMouseMoves = flag;
 }
+
+Qtghost* create_Qtghost(QGuiApplication *app, QQmlApplicationEngine *engine)
+{
+    return new Qtghost(app, engine);
+}
