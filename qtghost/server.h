@@ -56,6 +56,12 @@ public:
       \param cmd packet command.
     */
     void sendRec(QString cmd, QByteArray data);
+    /**
+      \brief get packet length
+      \param buffer buffer pointer
+      \return packet length
+    */
+    int getPacketLength(QByteArray *buffer);
 
 signals:
     /**

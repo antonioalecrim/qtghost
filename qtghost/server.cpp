@@ -120,6 +120,19 @@ void Server::newConnection()
     }
 }
 
+int Server::getPacketLength(QByteArray *buffer)
+{
+    int length = 0;
+    int index = buffer->indexOf(":");
+
+    if (index > 0) {
+        length = QString(buffer->left(index)).toInt();
+        buffer->remove(0, index+1);
+    }
+
+    return length;
+}
+
 void Server::readyRead()
 {
     while (socket->bytesAvailable() > 0)
@@ -128,18 +141,20 @@ void Server::readyRead()
         do {
             tmpBuffer = socket->readAll();
             if (!buffer.length()) {
-                int index = tmpBuffer.indexOf(":");
-                bLength = QString(tmpBuffer.mid(0, index)).toInt();
-                tmpBuffer.remove(0, index+1);
+                bLength = getPacketLength(&tmpBuffer);
             }
             buffer.append(tmpBuffer);
-        } while(tmpBuffer.size() > 0);
 
-        if (buffer.length() >= bLength) {
-            qDebug() << "Qtghost:" << "received length: " << buffer.length();
-            emit dataReceived(buffer);
-            buffer.clear();
-        }
+            if (buffer.length() > 0 && buffer.length() >= bLength) {
+                qDebug() << "Qtghost:" << "received length: " << buffer.length();
+                emit dataReceived(buffer.left(bLength));
+                buffer.remove(0, bLength);
+                if (buffer.length() > 0) {
+                    bLength = getPacketLength(&buffer);
+                }
+            }
+
+        } while(tmpBuffer.size() > 0);
     }
 }
 
