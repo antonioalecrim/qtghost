@@ -30,19 +30,25 @@
 
 /**
   \brief starts ghost library if present.
+  \param app Application reference.
+  \param engine QML Engine reference.
+  \param qtghost test library result.
 */
-void ghostfy(QGuiApplication *app, QQmlApplicationEngine *engine)
+void ghostfy(QGuiApplication *app, QQmlApplicationEngine *engine, QtghostInterface *qtghost)
 {
+    const quint16 port = 35255;
     QLibrary library("qtghost");
+
     if (library.load()) {
         qDebug() << "Qtghost loaded";
+
         typedef Qtghost* (*create_Qtghost)(QGuiApplication *app, QQmlApplicationEngine *engine);
         create_Qtghost create_qtghost = (create_Qtghost)library.resolve("create_Qtghost");
 
          if (create_qtghost) {
-             QtghostInterface *qtghost = create_qtghost(app, engine);
+             qtghost = create_qtghost(app, engine);
              if (qtghost) {
-                 qtghost->init(35255);
+                 qtghost->init(port);
                  qDebug() << "Ghost mode initiated";
              }
          }
@@ -63,7 +69,8 @@ int main(int argc, char *argv[])
     if (engine.rootObjects().isEmpty())
         return -1;
 
-    ghostfy(&app, &engine);//init Qtghost server
+    QtghostInterface *qtghost = nullptr;
+    ghostfy(&app, &engine, qtghost);//init Qtghost server
 
     return app.exec();
 }
